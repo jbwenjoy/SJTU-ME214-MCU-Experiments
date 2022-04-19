@@ -1,29 +1,29 @@
 ORG 0000H
 LJMP START
-LJMP MAIN
+;LJMP MAIN
 
 ORG 1000H
 START:
 	SETB EA	; allow interrupt
 	SETB EX1	; allow external interrupt INT1
-	MOV DPTR, #0DFF8H
-	MOVX @DPTR, A	; activate A/D
+	MOV DPTR, #0DFF8H	; address of ADC0808 is 1101-1111-1111-1000
+	MOVX @DPTR, A	; write to activate A/D
 	
 MAIN:
-	MOV A, 34H	; *50
-	MOV B, #50
-	MUL AB
+	MOV A, 34H
+	MOV B, #32H	; 50
+	MUL AB	; A*B, result in BA
 	MOV R0, A	; lower 8 bit
 	MOV R1, B	; higher 8 bit
 
-	MOV B, #10	; *10/256
-	MUL AB
+	MOV B, #0AH	; *10/256
+	MUL AB	; A*B, result in BA
 	MOV R0, B
 	MOV 32H, B
 
 	MOV A, R1	; convert to decimal
-	MOV B, #10
-	DIV AB
+	MOV B, #0AH	; 10
+	DIV AB	; A/B result in B
 	MOV 30H, A
 	MOV 31H, B
 
@@ -31,17 +31,17 @@ MAIN:
 	LCALL DELAY
 	LJMP MAIN
 
-ORG 0200H
+ORG 0200H	; cannot be too large
 INTERRUPT:
 	PUSH PSW
 	PUSH ACC
 	PUSH DPH
 	PUSH DPL
 	MOV DPTR, #0DFF8H
-	MOVX A, @DPTR	; read 1 time 
+	MOVX A, @DPTR	; read A/D result
 	MOV 34H, A	; keep AD result in 34H
 	MOV DPTR, #0DFF8H
-	MOVX @DPTR, A	; write 1 time
+	MOVX @DPTR, A	; A/D convert by writing
 	POP DPL
 	POP DPH
 	POP ACC
@@ -57,7 +57,7 @@ DISPLAY:
 	MOVX @DPTR, A
 
 	MOV R1, 31H
-	MOV DPTR, #DISTABLE2
+	MOV DPTR, #DISTABLE2	; display dot
 	MOV A, R1
 	MOVC A, @A+DPTR
 	MOV DPTR, #7FF9H
@@ -82,9 +82,9 @@ RET
 
 
 DELAY:
-	MOV R5, #0FFH
+	MOV R5, #0FFH	; 255
 LOOP1:
-	MOV R6, #0FFH
+	MOV R6, #0FFH	; 255
 LOOP2:
 	NOP
 	NOP
@@ -104,4 +104,5 @@ DB 0C0H,0F9H,0A4H,0B0H
 DB 99H,92H,82H,0F8H
 DB 80H,90H,88H,83H
 DB 0C6H,0A1H,86H,8EH
+
 END

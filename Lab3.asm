@@ -1,8 +1,10 @@
 ORG 0000H
 LJMP START
-;LJMP MAIN
 
-ORG 1000H
+ORG 0013H
+LJMP T1INT
+
+ORG 0100H
 START:
 	SETB EA	; allow interrupt
 	SETB EX1	; allow external interrupt INT1
@@ -12,12 +14,12 @@ START:
 MAIN:
 	MOV A, 34H
 	MOV B, #32H	; 50
-	MUL AB	; A*B, result in BA
+	MUL AB	; A*B result in BA
 	MOV R0, A	; lower 8 bit
 	MOV R1, B	; higher 8 bit
 
 	MOV B, #0AH	; *10/256
-	MUL AB	; A*B, result in BA
+	MUL AB	; A*B result in BA
 	MOV R0, B
 	MOV 32H, B
 
@@ -32,7 +34,7 @@ MAIN:
 	LJMP MAIN
 
 ORG 0200H	; cannot be too large
-INTERRUPT:
+T1INT:
 	PUSH PSW
 	PUSH ACC
 	PUSH DPH
@@ -63,14 +65,12 @@ DISPLAY:
 	MOV DPTR, #7FF9H
 	MOVX @DPTR, A
 	
-	
 	MOV R1, 32H
 	MOV DPTR, #DISTABLE
 	MOV A, R1
 	MOVC A, @A+DPTR
 	MOV DPTR, #7FFAH
 	MOVX @DPTR, A
-	;CLR ACC.7	; dot
 	
 	MOV R1, 33H
 	MOV DPTR, #DISTABLE
@@ -79,7 +79,6 @@ DISPLAY:
 	MOV DPTR, #7FFBH
 	MOVX @DPTR, A
 RET
-
 
 DELAY:
 	MOV R5, #0FFH	; 255
@@ -104,5 +103,5 @@ DB 0C0H,0F9H,0A4H,0B0H
 DB 99H,92H,82H,0F8H
 DB 80H,90H,88H,83H
 DB 0C6H,0A1H,86H,8EH
-
+	
 END
